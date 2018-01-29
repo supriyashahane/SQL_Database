@@ -1,0 +1,270 @@
+
+[1] select title,fname,lname from customer,orderinfo where customer.customer_id = orderinfo.customer_id;
+					QUERY PLAN                              
+---------------------------------------------------------------------
+ Hash Join  (cost=1.11..2.37 rows=5 width=184)
+   Hash Cond: (customer.customer_id = orderinfo.customer_id)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=188)
+   ->  Hash  (cost=1.05..1.05 rows=5 width=4)
+         ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=4)
+
+[2] select title,fname,lname,date_shipped from customer,orderinfo where customer.customer_id = orderinfo.customer_id;
+					 QUERY PLAN                              
+---------------------------------------------------------------------
+ Hash Join  (cost=1.11..2.37 rows=5 width=188)
+   Hash Cond: (customer.customer_id = orderinfo.customer_id)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=188)
+   ->  Hash  (cost=1.05..1.05 rows=5 width=8)
+         ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=8)
+
+[3] select title,fname,lname,customer_id,item_id from customer,item;
+				 QUERY PLAN                            
+-----------------------------------------------------------------
+ Nested Loop  (cost=0.00..4.35 rows=165 width=192)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=188)
+   ->  Materialize  (cost=0.00..1.17 rows=11 width=4)
+         ->  Seq Scan on item  (cost=0.00..1.11 rows=11 width=4)
+
+[4] select fname,lname,customer_id,quantity from customer,item,stock where item.item_id = stock.item_id;
+					  QUERY PLAN                                  
+-----------------------------------------------------------------------------
+ Nested Loop  (cost=1.16..4.86 rows=105 width=172)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=168)
+   ->  Materialize  (cost=1.16..2.41 rows=7 width=4)
+         ->  Hash Join  (cost=1.16..2.38 rows=7 width=4)
+               Hash Cond: (item.item_id = stock.item_id)
+               ->  Seq Scan on item  (cost=0.00..1.11 rows=11 width=4)
+               ->  Hash  (cost=1.07..1.07 rows=7 width=8)
+                     ->  Seq Scan on stock  (cost=0.00..1.07 rows=7 width=8)
+
+[5] select barcode_ean,description from barcode,item where item.item_id = barcode.item_id;
+		                            QUERY PLAN                             
+-------------------------------------------------------------------
+ Hash Join  (cost=1.25..2.55 rows=11 width=202)
+   Hash Cond: (barcode.item_id = item.item_id)
+   ->  Seq Scan on barcode  (cost=0.00..1.14 rows=14 width=60)
+   ->  Hash  (cost=1.11..1.11 rows=11 width=150)
+         ->  Seq Scan on item  (cost=0.00..1.11 rows=11 width=150)
+
+[6] select barcode_ean,description,orderinfo_id from barcode,item,orderline where item.item_id = orderline.item_id;
+  				QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Nested Loop  (cost=1.25..5.62 rows=154 width=206)
+   ->  Seq Scan on barcode  (cost=0.00..1.14 rows=14 width=56)
+   ->  Materialize  (cost=1.25..2.58 rows=11 width=150)
+         ->  Hash Join  (cost=1.25..2.52 rows=11 width=150)
+               Hash Cond: (orderline.item_id = item.item_id)
+               ->  Seq Scan on orderline  (cost=0.00..1.12 rows=12 width=8)
+               ->  Hash  (cost=1.11..1.11 rows=11 width=150)
+                     ->  Seq Scan on item  (cost=0.00..1.11 rows=11 width=150)
+
+[7] select distinct town,zipcode from customer;
+			 QUERY PLAN                            
+-----------------------------------------------------------------
+ HashAggregate  (cost=1.22..1.37 rows=15 width=126)
+   Group Key: town, zipcode
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=126)
+
+[8] select distinct lname,addressline,town,zipcode,phone from customer;
+			  QUERY PLAN                            
+-----------------------------------------------------------------
+ HashAggregate  (cost=1.34..1.49 rows=15 width=404)
+   Group Key: lname, addressline, town, zipcode, phone
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=404)
+
+[9] select distinct date_placed from orderinfo; 
+			  QUERY PLAN                           
+---------------------------------------------------------------
+ HashAggregate  (cost=1.06..1.11 rows=5 width=4)
+   Group Key: date_placed
+   ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=4)
+[10] select count(distinct date_placed) from orderinfo;
+			 QUERY PLAN                           
+---------------------------------------------------------------
+ Aggregate  (cost=1.06..1.07 rows=1 width=4)
+   ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=4)
+[11] select *from customer where lname = 'Stones';
+			QUERY PLAN                        
+----------------------------------------------------------
+ Seq Scan on customer  (cost=0.00..1.19 rows=1 width=510)
+   Filter: ((lname)::text = 'Stones'::text)
+
+[12] explain select *from customer where not town = 'Bingham';
+                        QUERY PLAN                         
+-----------------------------------------------------------
+ Seq Scan on customer  (cost=0.00..1.19 rows=14 width=510)
+   Filter: ((town)::text <> 'Bingham'::text)
+
+[13] select * from orderline order by item_id;
+                           QUERY PLAN                            
+-----------------------------------------------------------------
+ Sort  (cost=1.34..1.37 rows=12 width=12)
+   Sort Key: item_id
+   ->  Seq Scan on orderline  (cost=0.00..1.12 rows=12 width=12)
+
+[14]  select *from customer order by fname ASC,town DESC; 
+                           QUERY PLAN                            
+-----------------------------------------------------------------
+ Sort  (cost=1.44..1.48 rows=15 width=510)
+   Sort Key: fname, town DESC
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=510)
+
+[15]  insert into stock (item_id,quantity) values ('12','3');
+                    QUERY PLAN                     
+---------------------------------------------------
+ Insert on stock  (cost=0.00..0.01 rows=1 width=0)
+   ->  Result  (cost=0.00..0.01 rows=1 width=0)
+
+[16]  update stock set quantity= '4' where item_id= 12;
+		   QUERY PLAN                         
+------------------------------------------------------------
+ Update on stock  (cost=0.00..1.09 rows=1 width=10)
+   ->  Seq Scan on stock  (cost=0.00..1.09 rows=1 width=10)
+         Filter: (item_id = 12)
+
+[17]  delete from stock where item_id = 12;
+		     QUERY PLAN                         
+-----------------------------------------------------------
+ Delete on stock  (cost=0.00..1.09 rows=1 width=6)
+   ->  Seq Scan on stock  (cost=0.00..1.09 rows=1 width=6)
+         Filter: (item_id = 12)
+
+[18]  select MIN(customer_id) from customer where lname = 'Alex';
+                          QUERY PLAN                          
+--------------------------------------------------------------
+ Aggregate  (cost=1.19..1.20 rows=1 width=4)
+   ->  Seq Scan on customer  (cost=0.00..1.19 rows=1 width=4)
+         Filter: ((lname)::text = 'Alex'::text)
+
+[19]  select MIN(cost_price) AS SmallestPrice from item; 
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Aggregate  (cost=1.14..1.15 rows=1 width=14)
+   ->  Seq Scan on item  (cost=0.00..1.11 rows=11 width=14)
+
+[20]  select count(lname) from customer where lname = 'Stones';
+                          QUERY PLAN                           
+---------------------------------------------------------------
+ Aggregate  (cost=1.19..1.20 rows=1 width=82)
+   ->  Seq Scan on customer  (cost=0.00..1.19 rows=1 width=82)
+         Filter: ((lname)::text = 'Stones'::text)
+
+[21]  select AVG(cost_price) from item where sell_price <= 19.95;
+                        QUERY PLAN                         
+-----------------------------------------------------------
+ Aggregate  (cost=1.15..1.16 rows=1 width=14)
+   ->  Seq Scan on item  (cost=0.00..1.14 rows=4 width=14)
+         Filter: (sell_price <= 19.95)
+[22]   select *from customer where town like 'B%' and lname = 'Stones';
+                                  QUERY PLAN                                   
+-------------------------------------------------------------------------------
+ Seq Scan on customer  (cost=0.00..1.23 rows=1 width=510)
+   Filter: (((town)::text ~~ 'B%'::text) AND ((lname)::text = 'Stones'::text))
+[23]   select *from customer,orderinfo where lname in ('Stones');
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Nested Loop  (cost=0.00..2.29 rows=5 width=540)
+   ->  Seq Scan on customer  (cost=0.00..1.19 rows=1 width=510)
+         Filter: ((lname)::text = 'Stones'::text)
+   ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=30)
+
+[24]  select barcode_ean,quantity from barcode,orderline where orderinfo_id between 1 and 3;
+			 QUERY PLAN                           
+---------------------------------------------------------------
+ Nested Loop  (cost=0.00..2.46 rows=14 width=60)
+   ->  Seq Scan on orderline  (cost=0.00..1.18 rows=1 width=4)
+         Filter: ((orderinfo_id >= 1) AND (orderinfo_id <= 3))
+   ->  Seq Scan on barcode  (cost=0.00..1.14 rows=14 width=56)
+
+[25]  explain select lname as last_name,fname as first_name
+from customer;
+                        QUERY PLAN                         
+-----------------------------------------------------------
+ Seq Scan on customer  (cost=0.00..1.15 rows=15 width=164)
+
+[26]   explain select date_placed,date_shipped from orderinfo INNER JOIN orderline on orderinfo.orderinfo_id = orderline.orderinfo_id;
+                              QUERY PLAN                              
+----------------------------------------------------------------------
+ Hash Join  (cost=1.11..2.33 rows=5 width=8)
+   Hash Cond: (orderline.orderinfo_id = orderinfo.orderinfo_id)
+   ->  Seq Scan on orderline  (cost=0.00..1.12 rows=12 width=4)
+   ->  Hash  (cost=1.05..1.05 rows=5 width=12)
+         ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=12)
+
+[27] explain select lname from customer left join orderinfo on customer.customer_id=orderinfo.customer_id;
+                             QUERY PLAN                              
+---------------------------------------------------------------------
+ Hash Left Join  (cost=1.11..2.37 rows=15 width=82)
+   Hash Cond: (customer.customer_id = orderinfo.customer_id)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=86)
+   ->  Hash  (cost=1.05..1.05 rows=5 width=4)
+         ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=4)
+
+[28] explain select fname,lname from customer full outer join orderinfo on customer.customer_id = orderinfo.customer_id;
+                             QUERY PLAN                              
+---------------------------------------------------------------------
+ Hash Full Join  (cost=1.11..2.37 rows=15 width=164)
+   Hash Cond: (customer.customer_id = orderinfo.customer_id)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=168)
+   ->  Hash  (cost=1.05..1.05 rows=5 width=4)
+         ->  Seq Scan on orderinfo  (cost=0.00..1.05 rows=5 width=4)
+[29] explain select fname from customer where lname = 'Stones' Group By fname ;
+                          QUERY PLAN                           
+---------------------------------------------------------------
+ HashAggregate  (cost=1.19..1.20 rows=1 width=82)
+   Group Key: fname
+   ->  Seq Scan on customer  (cost=0.00..1.19 rows=1 width=82)
+         Filter: ((lname)::text = 'Stones'::text)
+[30]  explain select count(lname),town from customer group by town having count(lname)>1;
+                           QUERY PLAN                            
+-----------------------------------------------------------------
+ HashAggregate  (cost=1.26..1.45 rows=15 width=164)
+   Group Key: town
+   Filter: (count(lname) > 1)
+   ->  Seq Scan on customer  (cost=0.00..1.15 rows=15 width=164)
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

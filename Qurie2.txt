@@ -1,0 +1,234 @@
+[1] select title,fname,lname from customer,orderinfo where customer.customer_id = orderinfo.customer_id;
+
+
+
+
+[2] select title,fname,lname,date_shipped from customer,orderinfo where customer.customer_id = orderinfo.customer_id;
+
+
+
+[3] select title,fname,lname,customer_id,item_id from customer,item ;
+[a] select title,fname,lname,customer_id from customer,item,orderline where item.item_id = orderline.item_id;
+[b] select title,fname,lname,customer_id,item_id from customer,orderline;
+
+[4] select fname,lname,quantity from customer,item,stock where item.item_id = stock.item_id;
+[a] select fname,lname,quantity from customer,barcode,stock where barcode.item_id = stock.item_id;
+[b] select fname,lname,quantity from customer,orderline,orderinfo where orderline.orderinfo_id = orderline.orderinfo_id and
+    customer.customer_id=orderinfo.customer_id;
+
+[5] select barcode_ean,description from barcode,item where item.item_id = barcode.item_id;
+[a] select distinct barcode_ean,description from barcode,item where item.item_id = barcode.item_id;
+[b] select distinct barcode_ean,description from barcode,item where item.item_id >=11;
+
+[6] select barcode_ean,description,orderinfo_id from barcode,item,orderline where item.item_id = orderline.item_id;
+[a] select barcode_ean,description,orderinfo_id from barcode,item,orderline where item.description = 'Speakers';
+[b] select distinct barcode_ean,description,orderinfo_id from barcode,item,orderline where item.description = 'Speakers';
+
+[7] select distinct town,zipcode from customer;
+[a] select town,zipcode from customer group by town,zipcode having count(zipcode) <2;
+[b] with info as (select town,zipcode from customer)select * from info;
+
+[8] select distinct lname,addressline,town,zipcode,phone from customer;
+[a] select lname,addressline,town,zipcode,phone from customer group by lname,addressline,town,zipcode,phone having count(lname)<14;
+[b] select lname,addressline,town,zipcode,phone from customer order by customer_id asc;
+
+[9] select distinct date_placed from orderinfo; 
+[a] select date_placed from orderinfo;
+[b] select date_placed from orderinfo order by orderinfo_id; 
+
+[10] select count(distinct date_placed) from orderinfo;	
+[a] select count(date_placed) from orderinfo;
+[b] select count(orderinfo_id) from orderinfo;
+
+[11] select *from customer where lname = 'Stones';
+[a]  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
